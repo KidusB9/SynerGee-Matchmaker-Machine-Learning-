@@ -81,7 +81,7 @@ def train_longevity_model(matches):
     for match in matches:
         shared_interests = len(set(match.user1.interests).intersection(set(match.user2.interests)))
         X.append([match.score, shared_interests])
-        # Simulate longevity score (for demonstration purposes)
+        # Simulate longevity score (i have encontered errors here but this should work as expected)
         y.append(random.randint(50, 100) if match.score > 70 else random.randint(0, 50))
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -145,7 +145,7 @@ def sentiment_adjusted_compatibility(user1, user2):
     
     # Adjust the compatibility score based on sentiment
     adjustment = (user1_sentiment + user2_sentiment) * 10  # Scale factor
-    return min(max(base_score + adjustment, 0), 100)  # Keep score between 0 and 100
+    return min(max(base_score + adjustment, 0), 100)  # Keep score between 0 and 100  
 
 # Update the matching logic with sentiment-adjusted compatibility
 sentiment_adjusted_matches = []
@@ -199,9 +199,9 @@ for user in users:
 
 # Created some users,  for the purpose of this repository since i cant uplaod users files here
 users = [
-    User("Alice", ["music", "sports", "movies"]),
-    User("Bob", ["books", "movies", "hiking"]),
-    User("Charlie", ["music", "pets", "hiking"]),
+    User("Alice", ["muesic", "sports", "movies"]),
+    User("Bob", ["books", "movies", "hikiing"]),
+    User("Charlie", ["music", "petss", "hikiing"]),
     User("Diane", ["books", "music", "sports"])
 ]
 
@@ -277,31 +277,31 @@ def swipe():
         target_name = request.form['target_name']
         action = request.form['action']  # 'like' or 'dislike'
 
-        user = next((u for u in session['registered_users'] if u.name == user_name), None)  # Updated line
-        target = next((u for u in session['registered_users'] if u.name == target_name), None)  # Updated line
+        user = next((u for u in session['registered_users'] if u.name == user_name), None)  
+        target = next((u for u in session['registered_users'] if u.name == target_name), None)  
 
         if user and target:
             if action == 'like':
                 score = sentiment_adjusted_compatibility(user, target)
                 match = Match(user, target, score)
-                session['matches'].append(match)  # Assuming you want to store matches in session
+                session['matches'].append(match)  
                 notify_users(match)
                 return redirect(url_for('show_matches'))
             else:
                 return "Disliked", 200
         else:
             return "User or Target not found", 404
-    return render_template('swipe.html', users=session['registered_users'])  # Updated line
+    return render_template('swipe.html', users=session['registered_users'])  
 
 
 
 @app.route('/show_matches', methods=['GET'])
 def show_matches():
     matches = []
-    for i in range(len(session['registered_users'])):  # Updated line
-        for j in range(i+1, len(session['registered_users'])):  # Updated line
-            score = sentiment_adjusted_compatibility(session['registered_users'][i], session['registered_users'][j])  # Updated line
-            match = Match(session['registered_users'][i], session['registered_users'][j], score)  # Updated line
+    for i in range(len(session['registered_users'])): 
+        for j in range(i+1, len(session['registered_users'])):  
+            score = sentiment_adjusted_compatibility(session['registered_users'][i], session['registered_users'][j]) 
+            match = Match(session['registered_users'][i], session['registered_users'][j], score)  
             matches.append(str(match))
     return render_template('matches.html', matches=matches)
 
