@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - SynerGee</title>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID">
+     <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Register</h1>
+    <form action="/register" method="post" id="registrationForm">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <span id="passwordStrength"></span><br><br>
+
+        <input type="submit" value="Register">
+    </form>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <a href="/">Back to Home</a>
+
+    <script>
+        // Google Sign-In
+        function onSignIn(googleUser) {
+            var id_token = googleUser.getAuthResponse().id_token;
+            // Send id_token to your backend via HTTPS
+        }
+
+        // Email validation
+        document.getElementById('email').addEventListener('input', function(e) {
+            const email = e.target.value;
+            if (!email.includes('@')) {
+                alert('Email must include "@" symbol.');
+            }
+        });
+
+        // Password strength validation
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthElement = document.getElementById('passwordStrength');
+
+            if (password.length < 8) {
+                strengthElement.textContent = 'Weak password';
+                strengthElement.style.color = 'red';
+            } else {
+                strengthElement.textContent = 'Strong password';
+                strengthElement.style.color = 'green';
+            }
+        });
+
+        // Form validation
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (email === '' || password === '') {
+                e.preventDefault();
+                alert('All fields are required.');
+            }
+        });
+    </script>
+</body>
+</html>
