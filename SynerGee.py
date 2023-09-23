@@ -6,6 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from collections import Counter
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import train_test_split
+from flask import Flask, request, render_template, redirect, url_for, jsonify
 
 class User:
     def __init__(self, name, interests):
@@ -200,3 +201,41 @@ for match in matches:
 # Predict future best matches using SuperMatch
 for user in users:
     super_match(user, users)
+
+app = Flask(__name__)
+
+registered_users = []
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/register', methods=['POST'])
+def register_user():
+    name = request.form['name']
+    interests = request.form['interests'].split(',')
+    new_user = User(name, interests)
+    registered_users.append(new_user)
+    return redirect(url_for('index'))
+
+@app.route('/generate_matches', methods=['GET'])
+def generate_matches_route():
+    matches = []
+    for i in range(len(registered_users)):
+        for j in range(i+1, len(registered_users)):
+            score = calculate_compatibility(registered_users[i], registered_users[j])
+            match = Match(registered_users[i], registered_users[j], score)
+            matches.append(str(match))
+    return jsonify({"matches": matches})
+
+@app.route('/recommend_interests', methods=['GET'])
+def recommend_interests_route():
+    all_interests = list(set([interest for user in registered_users for interest in user.interests]))
+    recommendations = {}
+    for user in registered_users:
+        recommend_interests(user, registered_users, all_interests)
+        recommendations[user.name] = user.interests  # Replace this with actual recommendations
+    return jsonify({"recommendations": recommendations})
+
+if __name__ == '__main__':
+    app.run(debug=True)
