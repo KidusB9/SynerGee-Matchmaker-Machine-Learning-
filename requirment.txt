@@ -1,0 +1,5 @@
+Flask@latest
+TextBlob@latest
+numpy@latest
+scikit-learn@latest
+Flask-Session@latest
