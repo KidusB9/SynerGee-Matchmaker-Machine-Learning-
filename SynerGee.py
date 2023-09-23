@@ -7,6 +7,13 @@ from collections import Counter
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import train_test_split
 from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask_session import Session
+from flask import session
+
+longevity_model = None
+
+
+
 
 class User:
     def __init__(self, name, interests):
@@ -32,34 +39,11 @@ def calculate_compatibility(user1, user2):
     total_interests = len(set(user1.interests).union(set(user2.interests)))
     return (shared_interests / total_interests) * 100
 
-def train_longevity_model(matches):
-    X = []
-    y = []
+
+def process_matches(matches, longevity_model):
     for match in matches:
-        shared_interests = len(set(match.user1.interests).intersection(set(match.user2.interests)))
-        X.append([match.score, shared_interests])
-        # Simulate longevity score (for demonstration purposes)
-        y.append(random.randint(50, 100) if match.score > 70 else random.randint(0, 50))
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = MLPRegressor(hidden_layer_sizes=(10, 10), max_iter=500, random_state=42)
-    model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
-    print(f"Longevity model trained with R^2 score: {score}")
-    return model
+        predict_longevity(match, longevity_model)
 
-# Function to predict match longevity
-def predict_longevity(match, model):
-    shared_interests = len(set(match.user1.interests).intersection(set(match.user2.interests)))
-    longevity = model.predict([[match.score, shared_interests]])[0]
-    print(f"Predicted longevity for {match.user1.name} and {match.user2.name}: {longevity:.2f}")
-
-# Train the longevity model
-longevity_model = train_longevity_model(matches)
-
-# Predict the longevity of each match
-for match in matches:
-    predict_longevity(match, longevity_model)
 
 def notify_users(match):
     if match.score > 80:
@@ -91,6 +75,33 @@ def super_match(user, all_users):
 def interest_to_vector(interests, all_interests):
     return [1 if interest in interests else 0 for interest in all_interests]
 
+def train_longevity_model(matches):
+    X = []
+    y = []
+    for match in matches:
+        shared_interests = len(set(match.user1.interests).intersection(set(match.user2.interests)))
+        X.append([match.score, shared_interests])
+        # Simulate longevity score (for demonstration purposes)
+        y.append(random.randint(50, 100) if match.score > 70 else random.randint(0, 50))
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = MLPRegressor(hidden_layer_sizes=(10, 10), max_iter=500, random_state=42)
+    model.fit(X_train, y_train)
+    score = model.score(X_test, y_test)
+    print(f"Longevity model trained with R^2 score: {score}")
+    return model
+
+# Function to predict match longevity
+def predict_longevity(match, model):
+    shared_interests = len(set(match.user1.interests).intersection(set(match.user2.interests)))
+    longevity = model.predict([[match.score, shared_interests]])[0]
+    print(f"Predicted longevity for {match.user1.name} and {match.user2.name}: {longevity:.2f}")
+
+# Train the longevity model
+longevity_model = train_longevity_model(matches)
+
+# Predict the longevity of each match
+
 # Function to calculate advanced compatibility using cosine similarity
 def advanced_compatibility(user1_vector, user2_vector):
     similarity = cosine_similarity([user1_vector], [user2_vector])
@@ -99,13 +110,26 @@ def advanced_compatibility(user1_vector, user2_vector):
 # Function to recommend new interests to a user
 def recommend_interests(user, all_users, all_interests):
     similar_users = []
+    recommended_interests = Counter()
+    
     for other_user in all_users:
         if user != other_user:
             user_vector = interest_to_vector(user.interests, all_interests)
             other_user_vector = interest_to_vector(other_user.interests, all_interests)
             score = advanced_compatibility(user_vector, other_user_vector)
+            
             if score > 70:
                 similar_users.append(other_user)
+                
+                for interest in other_user.interests:
+                    if interest not in user.interests:
+                        recommended_interests[interest] += 1
+    
+    if recommended_interests:
+        most_common_interests = recommended_interests.most_common(3)
+        print(f"Recommended interests for {user.name}: {[x[0] for x in most_common_interests]}")
+    else:
+        print(f"No new interests to recommend for {user.name}.")
 def analyze_interest_sentiment(interests):
     sentiment_score = 0
     for interest in interests:
@@ -173,13 +197,16 @@ for i in range(len(users)):
 for user in users:
     recommend_interests(user, users, all_interests)
 
-# Create some users
+# Created some users,  for the purpose of this repository since i cant uplaod users files here
 users = [
     User("Alice", ["music", "sports", "movies"]),
     User("Bob", ["books", "movies", "hiking"]),
     User("Charlie", ["music", "pets", "hiking"]),
     User("Diane", ["books", "music", "sports"])
 ]
+
+
+
 
 # Generate matches for the users
 matches = []
@@ -193,6 +220,10 @@ for i in range(len(users)):
         users[i].past_matches.append((users[j], score))
         users[j].past_matches.append((users[i], score))
 
+longevity_model = train_longevity_model(matches)
+
+process_matches(matches, longevity_model)
+
 # Print and notify the matches
 for match in matches:
     print(match)
@@ -203,20 +234,25 @@ for user in users:
     super_match(user, users)
 
 app = Flask(__name__)
+#app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_TYPE'] = 'redis'
+Session(app)
 
-registered_users = []
+def initialize_data():
+    session['matches'] = []
+    session['registered_users'] = []
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/register', methods=['GET', 'POST'])
 def register_user():
     if request.method == 'POST':
         name = request.form['name']
         interests = request.form['interests'].split(',')
         new_user = User(name, interests)
-        registered_users.append(new_user)
+        session['registered_users'].append(new_user)
+        session.modified = True 
         return redirect(url_for('index'))
     return render_template('register.html')
 
@@ -224,30 +260,57 @@ def register_user():
 def login_user():
     if request.method == 'POST':
         name = request.form['name']
-        user = next((u for u in registered_users if u.name == name), None)
+        user = next((u for u in session['registered_users'] if u.name == name), None)  # Updated line
         if user:
             return redirect(url_for('show_matches'))
         else:
             return "User not found", 404
     return render_template('login.html')
 
+
+
+
+@app.route('/swipe', methods=['GET', 'POST'])
+def swipe():
+    if request.method == 'POST':
+        user_name = request.form['user_name']
+        target_name = request.form['target_name']
+        action = request.form['action']  # 'like' or 'dislike'
+
+        user = next((u for u in registered_users if u.name == user_name), None)
+        target = next((u for u in registered_users if u.name == target_name), None)
+
+        if user and target:
+            if action == 'like':
+                score = sentiment_adjusted_compatibility(user, target)  # Changed this line
+                match = Match(user, target, score)
+                matches.append(match)
+                notify_users(match)
+                return redirect(url_for('show_matches'))
+            else:
+                return "Disliked", 200
+        else:
+            return "User or Target not found", 404
+    return render_template('swipe.html', users=registered_users)
+
+
 @app.route('/show_matches', methods=['GET'])
 def show_matches():
     matches = []
     for i in range(len(registered_users)):
         for j in range(i+1, len(registered_users)):
-            score = calculate_compatibility(registered_users[i], registered_users[j])
+            score = sentiment_adjusted_compatibility(registered_users[i], registered_users[j])  # Changed this line
             match = Match(registered_users[i], registered_users[j], score)
             matches.append(str(match))
     return render_template('matches.html', matches=matches)
 
 @app.route('/recommend_interests', methods=['GET'])
 def recommend_interests_route():
-    all_interests = list(set([interest for user in registered_users for interest in user.interests]))
+    all_interests = list(set([interest for user in session['registered_users'] for interest in user.interests]))
     recommendations = {}
-    for user in registered_users:
-        recommend_interests(user, registered_users, all_interests)
-        recommendations[user.name] = user.interests  # Replace this with actual recommendations
+    for user in session['registered_users']:
+        recommend_interests(user, session['registered_users'], all_interests)
+        recommendations[user.name] = user.interests  
     return jsonify({"recommendations": recommendations})
 
 if __name__ == '__main__':
