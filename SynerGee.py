@@ -277,30 +277,31 @@ def swipe():
         target_name = request.form['target_name']
         action = request.form['action']  # 'like' or 'dislike'
 
-        user = next((u for u in registered_users if u.name == user_name), None)
-        target = next((u for u in registered_users if u.name == target_name), None)
+        user = next((u for u in session['registered_users'] if u.name == user_name), None)  # Updated line
+        target = next((u for u in session['registered_users'] if u.name == target_name), None)  # Updated line
 
         if user and target:
             if action == 'like':
-                score = sentiment_adjusted_compatibility(user, target)  # Changed this line
+                score = sentiment_adjusted_compatibility(user, target)
                 match = Match(user, target, score)
-                matches.append(match)
+                session['matches'].append(match)  # Assuming you want to store matches in session
                 notify_users(match)
                 return redirect(url_for('show_matches'))
             else:
                 return "Disliked", 200
         else:
             return "User or Target not found", 404
-    return render_template('swipe.html', users=registered_users)
+    return render_template('swipe.html', users=session['registered_users'])  # Updated line
+
 
 
 @app.route('/show_matches', methods=['GET'])
 def show_matches():
     matches = []
-    for i in range(len(registered_users)):
-        for j in range(i+1, len(registered_users)):
-            score = sentiment_adjusted_compatibility(registered_users[i], registered_users[j])  # Changed this line
-            match = Match(registered_users[i], registered_users[j], score)
+    for i in range(len(session['registered_users'])):  # Updated line
+        for j in range(i+1, len(session['registered_users'])):  # Updated line
+            score = sentiment_adjusted_compatibility(session['registered_users'][i], session['registered_users'][j])  # Updated line
+            match = Match(session['registered_users'][i], session['registered_users'][j], score)  # Updated line
             matches.append(str(match))
     return render_template('matches.html', matches=matches)
 
