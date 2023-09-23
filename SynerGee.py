@@ -210,23 +210,36 @@ registered_users = []
 def index():
     return render_template('index.html')
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register_user():
-    name = request.form['name']
-    interests = request.form['interests'].split(',')
-    new_user = User(name, interests)
-    registered_users.append(new_user)
-    return redirect(url_for('index'))
+    if request.method == 'POST':
+        name = request.form['name']
+        interests = request.form['interests'].split(',')
+        new_user = User(name, interests)
+        registered_users.append(new_user)
+        return redirect(url_for('index'))
+    return render_template('register.html')
 
-@app.route('/generate_matches', methods=['GET'])
-def generate_matches_route():
+@app.route('/login', methods=['GET', 'POST'])
+def login_user():
+    if request.method == 'POST':
+        name = request.form['name']
+        user = next((u for u in registered_users if u.name == name), None)
+        if user:
+            return redirect(url_for('show_matches'))
+        else:
+            return "User not found", 404
+    return render_template('login.html')
+
+@app.route('/show_matches', methods=['GET'])
+def show_matches():
     matches = []
     for i in range(len(registered_users)):
         for j in range(i+1, len(registered_users)):
             score = calculate_compatibility(registered_users[i], registered_users[j])
             match = Match(registered_users[i], registered_users[j], score)
             matches.append(str(match))
-    return jsonify({"matches": matches})
+    return render_template('matches.html', matches=matches)
 
 @app.route('/recommend_interests', methods=['GET'])
 def recommend_interests_route():
