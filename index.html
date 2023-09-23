@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SynerGee: The Science of Connection</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to SynerGee</h1>
+    <form action="/register" method="post" id="registrationForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="interests">Interests (comma separated):</label>
+        <input type="text" id="interests" name="interests" required><br><br>
+
+        <input type="submit" value="Register">
+    </form>
+
+    <a href="/generate_matches">Generate Matches</a><br>
+    <a href="/recommend_interests">Recommend Interests</a>
+
+    <script>
+        // Simple form validation
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value;
+            const interests = document.getElementById('interests').value;
+
+            if (name === '' || interests === '') {
+                e.preventDefault();
+                alert('All fields are required.');
+            }
+        });
+    </script>
+</body>
+</html>
