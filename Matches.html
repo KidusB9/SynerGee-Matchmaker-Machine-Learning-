@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Matches - SynerGee</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        /* Tinder-like card styling */
+        .card {
+            width: 300px;
+            height: 400px;
+            background-color: #fff;
+            position: relative;
+            margin: auto;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        }
+        .card-content {
+            padding: 20px;
+        }
+        /* Swipe buttons */
+        .swipe-buttons {
+            margin-top: 20px;
+        }
+        .swipe-button {
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 0 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 50%;
+            background-color: #ff0000;
+            color: white;
+        }
+        .swipe-button.right {
+            background-color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Matches</h1>
+    <div id="matchContainer">
+        <!-- Cards will be appended here -->
+    </div>
+    <div class="swipe-buttons">
+        <button class="swipe-button left" onclick="swipe('left')">❌</button>
+        <button class="swipe-button right" onclick="swipe('right')">❤️</button>
+    </div>
+    <a href="/">Back to Home</a>
+
+<script>
+    // Data populated from Flask backend
+    let matches = {{ matches|tojson|safe }};
+    let currentMatchIndex = 0;
+
+    function displayCurrentMatch() {
+        if (currentMatchIndex < matches.length) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const cardContent = document.createElement('div');
+            cardContent.className = 'card-content';
+            cardContent.innerHTML = matches[currentMatchIndex];
+            card.appendChild(cardContent);
+            document.getElementById('matchContainer').innerHTML = '';
+            document.getElementById('matchContainer').appendChild(card);
+        } else {
+            document.getElementById('matchContainer').innerHTML = 'No more matches';
+        }
+    }
+
+    function swipe(direction) {
+        if (direction === 'left') {
+            console.log('Swiped left on ' + matches[currentMatchIndex]);
+        } else {
+            console.log('Swiped right on ' + matches[currentMatchIndex]);
+        }
+
+        // Move to the next match
+        currentMatchIndex++;
+        displayCurrentMatch();
+    }
+
+    // Display the first match
+    displayCurrentMatch();
+</script>
+
+</body>
+</html>
