@@ -1,13 +1,9 @@
-                          ###App Name
-**SynerGee**: The Science of Connection".  combines "synergy" and "energy," creating meaningful, compatible connections between people based on various data-driven factors.
-
+                          ###SynerGee
+**SynerGee**: 
+The Science of Connection".  combines "synergy" and "energy," creating meaningful, compatible connections between people based on various data-driven factors.
 
                            ** Overview **
 SynerGee is an advanced social matching platform that leverages cutting-edge machine learning algorithms and natural language processing to create meaningful connections. Unlike traditional platforms that rely solely on shared interests, SynerGee incorporates multiple layers of compatibility metrics to ensure a more nuanced match.
-
-
-
-
 
 
 # SynerGee: The Science of Connection
@@ -29,7 +25,7 @@ SynerGee is an advanced social matching platform that leverages cutting-edge mac
 1. **Clone the repository**
 
     ```bash
-    git clone https://github.com/yourusername/SynerGee.git
+    https://github.com/KidusB9/SynerGee-Matchmaker-Machine-Learning.git
     ```
 
 2. **Navigate to the directory**
@@ -52,7 +48,6 @@ or go the the requirement.txt file
     ```
 
 ## Features
-
 
 
 ### Basic Compatibility Scoring
